@@ -6,7 +6,7 @@ import sys
 url_tg = f"https://api.telegram.org/bot{sys.argv[1]}/sendMessage"
 url = "https://erzelli.alpiristorazione.cloud/menu"
 
-_data = "\U0001F449 Menù {giorno} {data}\n\n"
+_data = "\U0001F449 Menù <b>{giorno}</b> {data}\n\n"
 _portata = "<b>{portata}</b> {emoji}\n"
 _piatto = "  \U000025AB <i>{piatto}</i>\n"
 
