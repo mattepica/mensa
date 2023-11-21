@@ -1,0 +1,25 @@
+---
+name: Push on Dev Telegram
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache
+        id: cache-linter
+        uses: actions/cache@v3
+        with:
+          path: venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      - name: Install venv
+        if: steps.cache-linter.outputs.cache-hit != 'true'
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate && pip3 install -r requirements.txt
+      - name: Push on TG
+        run: source venv/bin/activate && python3 script.py '${{ secrets.BOT_TOKEN }}' '${{ vars.DEBUG_CHANNEL_ID }}'
