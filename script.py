@@ -6,7 +6,7 @@ import sys
 url_tg = f"https://api.telegram.org/bot{sys.argv[1]}/sendMessage"
 url = "https://erzelli.alpiristorazione.cloud/menu"
 
-_data = "\U0001F449 {giorno} {data}\n\n"
+_data = "\U0001F449 Menù {giorno} {data}\n\n"
 _portata = "<b>{portata}</b> {emoji}\n"
 _piatto = "  \U000025AB <i>{piatto}</i>\n"
 
@@ -47,7 +47,7 @@ def main():
   soup = BeautifulSoup(html, "html.parser")
   table = soup.find('table', { "class": "tabella_menu_settimanale" })
 
-  msg+= _data.format(giorno = table.find_all('th',{ 'class': 'giorno_della_settimana'})[day-1].getText(), data=data)
+  msg+= _data.format(giorno = table.find_all('th',{ 'class': 'giorno_della_settimana'})[day-1].getText().lower(), data=data)
   msg+= primi(table.find('td', {"data-giorno": day , "data-tipo-piatto": 1}))
   msg+= secondi(table.find('td', {"data-giorno": day , "data-tipo-piatto": 2}))
   msg+= contorni(table.find('td', {"data-giorno": day , "data-tipo-piatto": 4}))
