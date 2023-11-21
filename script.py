@@ -6,10 +6,10 @@ import sys
 url_tg = f"https://api.telegram.org/bot{sys.argv[1]}/sendMessage"
 url = "https://erzelli.alpiristorazione.cloud/menu"
 
+_copyright = "@menumensaerzelli"
 _data = "\U0001F449 Menù <b>{giorno}</b> {data}\n\n"
 _portata = "<b>{portata}</b> {emoji}\n"
 _piatto = "  \U000025AB <i>{piatto}</i>\n"
-
 
 def primi(piatti):
     msg = _portata.format(emoji='\U0001F35D',portata='Primi')
@@ -51,6 +51,8 @@ def main():
   msg+= primi(table.find('td', {"data-giorno": day , "data-tipo-piatto": 1}))
   msg+= secondi(table.find('td', {"data-giorno": day , "data-tipo-piatto": 2}))
   msg+= contorni(table.find('td', {"data-giorno": day , "data-tipo-piatto": 4}))
+
+  msg+= _copyright
 
   try:
       response = requests.post(url_tg, json={'chat_id': sys.argv[2], 'parse_mode': "html",'text':  msg})
