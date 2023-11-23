@@ -8,27 +8,51 @@ url = "https://erzelli.alpiristorazione.cloud/menu"
 
 _copyright = "@menumensaerzelli"
 _data = "\U0001F449 Menù <b>{giorno}</b> {data}\n\n"
-_portata = "<b>{portata}</b> {emoji}\n"
-_piatto = "  \U000025AB <i>{piatto}</i>\n"
+_portata = "<b><u>{portata}</u></b> {emoji}\n"
+_piatto = "  \U000025AB <i>{piatto}{info}</i>\n"
+
+def get_info(piatto):
+  msg = ""
+  try:
+    response = requests.get(piatto.find("a")['href'])
+    response.raise_for_status()
+  except requests.HTTPError as e:
+      print(e)
+      return msg
+  html = response.text
+  soup = BeautifulSoup(html, "html.parser")
+  glutine = "https://erzelli.alpiristorazione.cloud/images/allergeni/glutine.png" in html
+  if glutine:
+      msg+=" \U0001F33E"
+  try:
+    kcal = soup.find("div", {"class": "div_gda"}).find("p", {"class": "valore_gda"}).decode_contents()
+    if not kcal:
+        raise Exception("Kcal not found")
+    kcal = kcal.split(">")[1].strip()
+  except Exception as e:
+      print(e)
+      return msg
+  msg+=f" [{kcal}]"
+  return msg
 
 def primi(piatti):
     msg = _portata.format(emoji='\U0001F35D',portata='Primi')
     for piatto in piatti.find_all("p")[:3]:
-        msg+= _piatto.format(piatto= piatto.getText().strip())
+        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
     msg+="\n"
     return msg
 
 def secondi(piatti):
     msg = _portata.format(emoji='\U0001F35B',portata='Secondi')
     for piatto in piatti.find_all("p")[:3]:
-        msg+= _piatto.format(piatto= piatto.getText().strip())
+        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
     msg+="\n"
     return msg
 
 def contorni(piatti):
     msg = _portata.format(emoji='\U0001F966',portata='Contorni')
     for piatto in piatti.find_all("p"):
-        msg+= _piatto.format(piatto= piatto.getText().strip())
+        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
     msg+="\n"
     return msg
 
