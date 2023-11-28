@@ -51,7 +51,7 @@ def secondi(piatti):
 
 def contorni(piatti):
     msg = _portata.format(emoji='\U0001F966',portata='Contorni')
-    for piatto in piatti.find_all("p"):
+    for piatto in piatti.find_all("p")[:3]:
         msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
     msg+="\n"
     return msg
