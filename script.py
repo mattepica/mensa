@@ -70,7 +70,7 @@ def render_info(info):
   msg = ""
   for allergene in info['allergeni']:
     msg += f" {allergeni_emoji[allergene]}"
-  msg += f" [{info['kcal']}]"
+  msg += f" [{info['kcal']} kcal]"
   return msg
 
 def render_piatti(piatti):
