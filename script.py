@@ -42,10 +42,8 @@ def get_info(piatto):
   return info
 
 def get_piatti(piatti_table):
-    piatti = []
-    for piatto in piatti_table.find_all("p")[:3]:
-        piatti.append({'nome': piatto.getText().strip(), 'info': get_info(piatto)})
-    return piatti
+    piatti = piatti_table.find_all("p")[:3]
+    return [{'nome': piatto.getText().strip(), 'info': get_info(piatto)} for piatto in piatti]
 
 def get_menu(day_of_week):
   response = requests.get(url)
