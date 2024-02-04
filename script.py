@@ -10,28 +10,25 @@ _portata = "<b><u>{portata}</u></b> {emoji}\n"
 _piatto = "  \U000025AB <i>{piatto}{info}</i>\n"
 
 def get_info(piatto):
-  msg = ""
+  info = {}
   try:
     response = requests.get(piatto.find("a")['href'])
     response.raise_for_status()
   except requests.HTTPError as e:
       print(e)
-      return msg
+      return info
   html = response.text
   soup = BeautifulSoup(html, "html.parser")
-  glutine = "https://erzelli.alpiristorazione.cloud/images/allergeni/glutine.png" in html
-  if glutine:
-      msg+=" \U0001F33E"
+  info['glutine'] = "https://erzelli.alpiristorazione.cloud/images/allergeni/glutine.png" in html
   try:
     kcal = soup.find("div", {"class": "div_gda"}).find("p", {"class": "valore_gda"}).decode_contents()
     if not kcal:
         raise Exception("Kcal not found")
-    kcal = kcal.split(">")[1].strip()
+    kcal = kcal.split(">")[1]
+    info['kcal'] = kcal.split()[0]
   except Exception as e:
       print(e)
-      return msg
-  msg+=f" [{kcal}]"
-  return msg
+  return info
 
 def get_piatti(piatti_table):
     piatti = []
@@ -56,10 +53,17 @@ def get_menu():
   }
   return menu
 
+def render_info(info):
+  msg = ""
+  if info['glutine']:
+      msg+=" \U0001F33E"
+  msg += f" [{info['kcal']}]"
+  return msg
+
 def render_piatti(piatti):
     msg=""
     for piatto in piatti:
-        msg+= _piatto.format(piatto=piatto['nome'], info=piatto['info'])
+        msg+= _piatto.format(piatto=piatto['nome'], info=render_info(piatto['info']))
     msg+="\n"
     return msg
 
