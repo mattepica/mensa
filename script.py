@@ -39,6 +39,23 @@ def get_piatti(piatti_table):
         piatti.append({'nome': piatto.getText().strip(), 'info': get_info(piatto)})
     return piatti
 
+def get_menu():
+  dt = datetime.now()
+  day = dt.weekday() + 1
+  response = requests.get(url)
+  response.raise_for_status()
+  html = response.text
+  soup = BeautifulSoup(html, "html.parser")
+  table = soup.find('table', { "class": "tabella_menu_settimanale" })
+
+  menu = {
+    'giorno':   table.find_all('th',{ 'class': 'giorno_della_settimana'})[day-1].getText().lower(),
+    'primi':    get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 1})),
+    'secondi':  get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 2})),
+    'contorni': get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 4})),
+  }
+  return menu
+
 def render_piatti(piatti):
     msg=""
     for piatto in piatti:
@@ -47,29 +64,18 @@ def render_piatti(piatti):
     return msg
 
 def render_message():
-  msg = ""
   dt = datetime.now()
   data = dt.strftime('%d/%m/%Y')
-  day =  dt.weekday() + 1
-  response = requests.get(url)
-  response.raise_for_status()
-  html = response.text
-  soup = BeautifulSoup(html, "html.parser")
-  table = soup.find('table', { "class": "tabella_menu_settimanale" })
+  menu = get_menu()
 
-  giorno   = table.find_all('th',{ 'class': 'giorno_della_settimana'})[day-1].getText().lower()
-  primi    = get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 1}))
-  secondi  = get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 2}))
-  contorni = get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 4}))
-
-  msg += _data.format(giorno = giorno, data=data)
+  msg = ""
+  msg += _data.format(giorno = menu['giorno'], data=data)
   msg += _portata.format(emoji='\U0001F35D',portata='Primi')
-  msg += render_piatti(primi)
+  msg += render_piatti(menu['primi'])
   msg += _portata.format(emoji='\U0001F35B',portata='Secondi')
-  msg += render_piatti(secondi)
+  msg += render_piatti(menu['secondi'])
   msg += _portata.format(emoji='\U0001F966',portata='Contorni')
-  msg += render_piatti(contorni)
-
+  msg += render_piatti(menu['contorni'])
   msg+= _copyright
 
   return msg
