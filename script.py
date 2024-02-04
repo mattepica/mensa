@@ -4,6 +4,17 @@ import requests
 
 url = "https://erzelli.alpiristorazione.cloud/menu"
 
+#
+# menu = {
+#   'primi': [
+#     { 'nome': 'nome1', 'info': { 'allergeni': ['glutine'], 'kcal': 300 } },
+#     { 'nome': 'nome2', 'info': { 'allergeni': ['latte'],   'kcal': 200 } },
+#   ],
+#   'secondi':  [],
+#   'contorni': [],
+# }
+#
+
 def get_info(piatto):
   info = {}
   try:
