@@ -1,9 +1,7 @@
 from bs4 import BeautifulSoup
 from datetime import datetime
 import requests
-import sys
 
-url_tg = f"https://api.telegram.org/bot{sys.argv[1]}/sendMessage"
 url = "https://erzelli.alpiristorazione.cloud/menu"
 
 _copyright = "@menumensaerzelli"
@@ -56,17 +54,13 @@ def contorni(piatti):
     msg+="\n"
     return msg
 
-def main():
+def render_message():
   msg = ""
   dt = datetime.now()
   data = dt.strftime('%d/%m/%Y')
   day =  dt.weekday() + 1
-  try:
-    response = requests.get(url)
-    response.raise_for_status()
-  except requests.HTTPError as e:
-      print(e)
-      sys.exit(1)
+  response = requests.get(url)
+  response.raise_for_status()
   html = response.text
   soup = BeautifulSoup(html, "html.parser")
   table = soup.find('table', { "class": "tabella_menu_settimanale" })
@@ -78,13 +72,16 @@ def main():
 
   msg+= _copyright
 
+  return msg
+
+def publish_message_to_telegram(bot_name, chat_id, msg):
+  url_tg = f"https://api.telegram.org/bot{bot_name}/sendMessage"
   try:
-      response = requests.post(url_tg, json={'chat_id': sys.argv[2], 'parse_mode': "html",'text':  msg})
+      response = requests.post(url_tg, json={'chat_id': chat_id, 'parse_mode': "html", 'text':  msg})
       response.raise_for_status()
   except requests.HTTPError:
-        print(response.json())
-  except Exception as e:
-      print(e)
+      print(response.json())
 
 if __name__ == "__main__":
-    main()
+    import sys
+    publish_message_to_telegram(sys.argv[1], sys.argv[2], render_message())
