@@ -33,24 +33,16 @@ def get_info(piatto):
   msg+=f" [{kcal}]"
   return msg
 
-def primi(piatti):
-    msg = _portata.format(emoji='\U0001F35D',portata='Primi')
-    for piatto in piatti.find_all("p")[:3]:
-        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
-    msg+="\n"
-    return msg
+def get_piatti(piatti_table):
+    piatti = []
+    for piatto in piatti_table.find_all("p")[:3]:
+        piatti.append({'nome': piatto.getText().strip(), 'info': get_info(piatto)})
+    return piatti
 
-def secondi(piatti):
-    msg = _portata.format(emoji='\U0001F35B',portata='Secondi')
-    for piatto in piatti.find_all("p")[:3]:
-        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
-    msg+="\n"
-    return msg
-
-def contorni(piatti):
-    msg = _portata.format(emoji='\U0001F966',portata='Contorni')
-    for piatto in piatti.find_all("p")[:3]:
-        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
+def render_piatti(piatti):
+    msg=""
+    for piatto in piatti:
+        msg+= _piatto.format(piatto=piatto['nome'], info=piatto['info'])
     msg+="\n"
     return msg
 
@@ -65,10 +57,18 @@ def render_message():
   soup = BeautifulSoup(html, "html.parser")
   table = soup.find('table', { "class": "tabella_menu_settimanale" })
 
-  msg+= _data.format(giorno = table.find_all('th',{ 'class': 'giorno_della_settimana'})[day-1].getText().lower(), data=data)
-  msg+= primi(table.find('td', {"data-giorno": day , "data-tipo-piatto": 1}))
-  msg+= secondi(table.find('td', {"data-giorno": day , "data-tipo-piatto": 2}))
-  msg+= contorni(table.find('td', {"data-giorno": day , "data-tipo-piatto": 4}))
+  giorno   = table.find_all('th',{ 'class': 'giorno_della_settimana'})[day-1].getText().lower()
+  primi    = get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 1}))
+  secondi  = get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 2}))
+  contorni = get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 4}))
+
+  msg += _data.format(giorno = giorno, data=data)
+  msg += _portata.format(emoji='\U0001F35D',portata='Primi')
+  msg += render_piatti(primi)
+  msg += _portata.format(emoji='\U0001F35B',portata='Secondi')
+  msg += render_piatti(secondi)
+  msg += _portata.format(emoji='\U0001F966',portata='Contorni')
+  msg += render_piatti(contorni)
 
   msg+= _copyright
 
