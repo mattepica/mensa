@@ -36,9 +36,7 @@ def get_piatti(piatti_table):
         piatti.append({'nome': piatto.getText().strip(), 'info': get_info(piatto)})
     return piatti
 
-def get_menu():
-  dt = datetime.now()
-  day = dt.weekday() + 1
+def get_menu(day_of_week):
   response = requests.get(url)
   response.raise_for_status()
   html = response.text
@@ -46,10 +44,10 @@ def get_menu():
   table = soup.find('table', { "class": "tabella_menu_settimanale" })
 
   menu = {
-    'giorno':   table.find_all('th',{ 'class': 'giorno_della_settimana'})[day-1].getText().lower(),
-    'primi':    get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 1})),
-    'secondi':  get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 2})),
-    'contorni': get_piatti(table.find('td', {"data-giorno": day , "data-tipo-piatto": 4})),
+    'giorno':   table.find_all('th',{ 'class': 'giorno_della_settimana'})[day_of_week-1].getText().lower(),
+    'primi':    get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 1})),
+    'secondi':  get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 2})),
+    'contorni': get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 4})),
   }
   return menu
 
@@ -74,8 +72,9 @@ def render_piatti(piatti):
 
 def render_message():
   dt = datetime.now()
+  day = dt.weekday() + 1
   data = dt.strftime('%d/%m/%Y')
-  menu = get_menu()
+  menu = get_menu(day)
   _portata = "<b><u>{portata}</u></b> {emoji}\n"
 
   msg = ""
