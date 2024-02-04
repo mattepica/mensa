@@ -14,7 +14,12 @@ def get_info(piatto):
       return info
   html = response.text
   soup = BeautifulSoup(html, "html.parser")
-  info['glutine'] = "https://erzelli.alpiristorazione.cloud/images/allergeni/glutine.png" in html
+  allergeni = []
+  if "https://erzelli.alpiristorazione.cloud/images/allergeni/glutine.png" in html:
+    allergeni.append('glutine')
+  if "https://erzelli.alpiristorazione.cloud/images/allergeni/latte.png" in html:
+    allergeni.append('latte')
+  info['allergeni'] = allergeni
   try:
     kcal = soup.find("div", {"class": "div_gda"}).find("p", {"class": "valore_gda"}).decode_contents()
     if not kcal:
@@ -49,9 +54,13 @@ def get_menu():
   return menu
 
 def render_info(info):
+  allergeni_emoji = {
+      'latte': '\U0001F95B',
+      'glutine': '\U0001F33E'
+  }
   msg = ""
-  if info['glutine']:
-      msg+=" \U0001F33E"
+  for allergene in info['allergeni']:
+    msg += f" {allergeni_emoji[allergene]}"
   msg += f" [{info['kcal']}]"
   return msg
 
