@@ -4,11 +4,6 @@ import requests
 
 url = "https://erzelli.alpiristorazione.cloud/menu"
 
-_copyright = "@menumensaerzelli"
-_data = "\U0001F449 Menù <b>{giorno}</b> {data}\n\n"
-_portata = "<b><u>{portata}</u></b> {emoji}\n"
-_piatto = "  \U000025AB <i>{piatto}{info}</i>\n"
-
 def get_info(piatto):
   info = {}
   try:
@@ -61,9 +56,10 @@ def render_info(info):
   return msg
 
 def render_piatti(piatti):
+    _piatto = "  \U000025AB <i>{piatto}{info}</i>\n"
     msg=""
     for piatto in piatti:
-        msg+= _piatto.format(piatto=piatto['nome'], info=render_info(piatto['info']))
+      msg += _piatto.format(piatto=piatto['nome'], info=render_info(piatto['info']))
     msg+="\n"
     return msg
 
@@ -71,16 +67,17 @@ def render_message():
   dt = datetime.now()
   data = dt.strftime('%d/%m/%Y')
   menu = get_menu()
+  _portata = "<b><u>{portata}</u></b> {emoji}\n"
 
   msg = ""
-  msg += _data.format(giorno = menu['giorno'], data=data)
+  msg += "\U0001F449 Menù <b>{giorno}</b> {data}\n\n".format(giorno = menu['giorno'], data=data)
   msg += _portata.format(emoji='\U0001F35D',portata='Primi')
   msg += render_piatti(menu['primi'])
   msg += _portata.format(emoji='\U0001F35B',portata='Secondi')
   msg += render_piatti(menu['secondi'])
   msg += _portata.format(emoji='\U0001F966',portata='Contorni')
   msg += render_piatti(menu['contorni'])
-  msg+= _copyright
+  msg += "@menumensaerzelli"
 
   return msg
 
