@@ -7,8 +7,8 @@ url = "https://erzelli.alpiristorazione.cloud/menu"
 #
 # menu = {
 #   'primi': [
-#     { 'nome': 'nome1', 'info': { 'allergeni': ['glutine'], 'kcal': 300 } },
-#     { 'nome': 'nome2', 'info': { 'allergeni': ['latte'],   'kcal': 200 } },
+#     { 'nome': 'nome1', 'allergeni': ['glutine'], 'kcal': 300 },
+#     { 'nome': 'nome2', 'allergeni': ['latte'],   'kcal': 200 },
 #   ],
 #   'secondi':  [],
 #   'contorni': [],
@@ -43,7 +43,7 @@ def get_info(piatto):
 
 def get_piatti(piatti_table):
     piatti = piatti_table.find_all("p")[:3]
-    return [{'nome': piatto.getText().strip(), 'info': get_info(piatto)} for piatto in piatti]
+    return [{'nome': piatto.getText().strip()} | get_info(piatto) for piatto in piatti]
 
 def get_menu(day_of_week):
   response = requests.get(url)
@@ -60,24 +60,17 @@ def get_menu(day_of_week):
   }
   return menu
 
-def render_info(info):
+def render_piatto(piatto):
   allergeni_emoji = {
-      'latte': '\U0001F95B',
-      'glutine': '\U0001F33E'
+    'latte': '\U0001F95B',
+    'glutine': '\U0001F33E'
   }
-  msg = ""
-  for allergene in info['allergeni']:
-    msg += f" {allergeni_emoji[allergene]}"
-  msg += f" [{info['kcal']} kcal]"
-  return msg
+  allergeni = "".join(map(lambda x: f" {allergeni_emoji[x]}", piatto['allergeni']))
+  return f"  \U000025AB <i>{piatto['nome']}{allergeni} [{piatto['kcal']} kcal]</i>"
 
 def render_piatti(piatti):
-    _piatto = "  \U000025AB <i>{piatto}{info}</i>\n"
-    msg=""
-    for piatto in piatti:
-      msg += _piatto.format(piatto=piatto['nome'], info=render_info(piatto['info']))
-    msg+="\n"
-    return msg
+  msg = "\n".join(map(render_piatto, piatti))
+  return msg + "\n\n"
 
 def render_message():
   dt = datetime.now()
