@@ -69,25 +69,27 @@ def render_piatto(piatto):
   return f"  \U000025AB <i>{piatto['nome']}{allergeni} [{piatto['kcal']} kcal]</i>"
 
 def render_piatti(piatti):
-  msg = "\n".join(map(render_piatto, piatti))
-  return msg + "\n\n"
+  return "\n".join(map(render_piatto, piatti))
 
 def render_message():
   dt = datetime.now()
   day = dt.weekday() + 1
   data = dt.strftime('%d/%m/%Y')
   menu = get_menu(day)
-  _portata = "<b><u>{portata}</u></b> {emoji}\n"
 
-  msg = ""
-  msg += "\U0001F449 Menù <b>{giorno}</b> {data}\n\n".format(giorno = menu['giorno'], data=data)
-  msg += _portata.format(emoji='\U0001F35D',portata='Primi')
-  msg += render_piatti(menu['primi'])
-  msg += _portata.format(emoji='\U0001F35B',portata='Secondi')
-  msg += render_piatti(menu['secondi'])
-  msg += _portata.format(emoji='\U0001F966',portata='Contorni')
-  msg += render_piatti(menu['contorni'])
-  msg += "@menumensaerzelli"
+  msg = f'''\
+\U0001F449 Menù <b>{menu['giorno']}</b> {data}
+
+<b><u>Primi</u></b> \U0001F35D
+{render_piatti(menu['primi'])}
+
+<b><u>Secondi</u></b> \U0001F35B
+{render_piatti(menu['secondi'])}
+
+<b><u>Contorni</u></b> \U0001F966
+{render_piatti(menu['contorni'])}
+
+@menumensaerzelli'''
 
   return msg
 
