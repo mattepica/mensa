@@ -1,90 +1,106 @@
 from bs4 import BeautifulSoup
 from datetime import datetime
 import requests
-import sys
 
-url_tg = f"https://api.telegram.org/bot{sys.argv[1]}/sendMessage"
 url = "https://erzelli.alpiristorazione.cloud/menu"
 
-_copyright = "@menumensaerzelli"
-_data = "\U0001F449 Menù <b>{giorno}</b> {data}\n\n"
-_portata = "<b><u>{portata}</u></b> {emoji}\n"
-_piatto = "  \U000025AB <i>{piatto}{info}</i>\n"
+#
+# menu = {
+#   'primi': [
+#     { 'nome': 'nome1', 'allergeni': ['glutine'], 'kcal': 300 },
+#     { 'nome': 'nome2', 'allergeni': ['latte'],   'kcal': 200 },
+#   ],
+#   'secondi':  [],
+#   'contorni': [],
+# }
+#
 
 def get_info(piatto):
-  msg = ""
+  info = {}
   try:
     response = requests.get(piatto.find("a")['href'])
     response.raise_for_status()
   except requests.HTTPError as e:
       print(e)
-      return msg
+      return info
   html = response.text
   soup = BeautifulSoup(html, "html.parser")
-  glutine = "https://erzelli.alpiristorazione.cloud/images/allergeni/glutine.png" in html
-  if glutine:
-      msg+=" \U0001F33E"
+  allergeni = []
+  if "https://erzelli.alpiristorazione.cloud/images/allergeni/glutine.png" in html:
+    allergeni.append('glutine')
+  if "https://erzelli.alpiristorazione.cloud/images/allergeni/latte.png" in html:
+    allergeni.append('latte')
+  info['allergeni'] = allergeni
   try:
     kcal = soup.find("div", {"class": "div_gda"}).find("p", {"class": "valore_gda"}).decode_contents()
     if not kcal:
         raise Exception("Kcal not found")
-    kcal = kcal.split(">")[1].strip()
+    kcal = kcal.split(">")[1]
+    info['kcal'] = kcal.split()[0]
   except Exception as e:
       print(e)
-      return msg
-  msg+=f" [{kcal}]"
-  return msg
+  return info
 
-def primi(piatti):
-    msg = _portata.format(emoji='\U0001F35D',portata='Primi')
-    for piatto in piatti.find_all("p")[:3]:
-        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
-    msg+="\n"
-    return msg
+def get_piatti(piatti_table):
+    piatti = piatti_table.find_all("p")[:3]
+    return [{'nome': piatto.getText().strip()} | get_info(piatto) for piatto in piatti]
 
-def secondi(piatti):
-    msg = _portata.format(emoji='\U0001F35B',portata='Secondi')
-    for piatto in piatti.find_all("p")[:3]:
-        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
-    msg+="\n"
-    return msg
-
-def contorni(piatti):
-    msg = _portata.format(emoji='\U0001F966',portata='Contorni')
-    for piatto in piatti.find_all("p")[:3]:
-        msg+= _piatto.format(piatto= piatto.getText().strip(), info = get_info(piatto))
-    msg+="\n"
-    return msg
-
-def main():
-  msg = ""
-  dt = datetime.now()
-  data = dt.strftime('%d/%m/%Y')
-  day =  dt.weekday() + 1
-  try:
-    response = requests.get(url)
-    response.raise_for_status()
-  except requests.HTTPError as e:
-      print(e)
-      sys.exit(1)
+def get_menu(day_of_week):
+  response = requests.get(url)
+  response.raise_for_status()
   html = response.text
   soup = BeautifulSoup(html, "html.parser")
   table = soup.find('table', { "class": "tabella_menu_settimanale" })
 
-  msg+= _data.format(giorno = table.find_all('th',{ 'class': 'giorno_della_settimana'})[day-1].getText().lower(), data=data)
-  msg+= primi(table.find('td', {"data-giorno": day , "data-tipo-piatto": 1}))
-  msg+= secondi(table.find('td', {"data-giorno": day , "data-tipo-piatto": 2}))
-  msg+= contorni(table.find('td', {"data-giorno": day , "data-tipo-piatto": 4}))
+  menu = {
+    'giorno':   table.find_all('th',{ 'class': 'giorno_della_settimana'})[day_of_week-1].getText().lower(),
+    'primi':    get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 1})),
+    'secondi':  get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 2})),
+    'contorni': get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 4})),
+  }
+  return menu
 
-  msg+= _copyright
+def render_piatto(piatto):
+  allergeni_emoji = {
+    'latte': '\U0001F95B',
+    'glutine': '\U0001F33E'
+  }
+  allergeni = "".join(map(lambda x: f" {allergeni_emoji[x]}", piatto['allergeni']))
+  return f"  \U000025AB <i>{piatto['nome']}{allergeni} [{piatto['kcal']} kcal]</i>"
 
+def render_piatti(piatti):
+  return "\n".join(map(render_piatto, piatti))
+
+def render_message():
+  dt = datetime.now()
+  day = dt.weekday() + 1
+  data = dt.strftime('%d/%m/%Y')
+  menu = get_menu(day)
+
+  msg = f'''\
+\U0001F449 Menù <b>{menu['giorno']}</b> {data}
+
+<b><u>Primi</u></b> \U0001F35D
+{render_piatti(menu['primi'])}
+
+<b><u>Secondi</u></b> \U0001F35B
+{render_piatti(menu['secondi'])}
+
+<b><u>Contorni</u></b> \U0001F966
+{render_piatti(menu['contorni'])}
+
+@menumensaerzelli'''
+
+  return msg
+
+def publish_message_to_telegram(bot_name, chat_id, msg):
+  url_tg = f"https://api.telegram.org/bot{bot_name}/sendMessage"
   try:
-      response = requests.post(url_tg, json={'chat_id': sys.argv[2], 'parse_mode': "html",'text':  msg})
+      response = requests.post(url_tg, json={'chat_id': chat_id, 'parse_mode': "html", 'text':  msg})
       response.raise_for_status()
   except requests.HTTPError:
-        print(response.json())
-  except Exception as e:
-      print(e)
+      print(response.json())
 
 if __name__ == "__main__":
-    main()
+    import sys
+    publish_message_to_telegram(sys.argv[1], sys.argv[2], render_message())
