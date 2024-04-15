@@ -2,7 +2,7 @@
 name: Push on Telegram
 on:
   schedule:
-    - cron: "30 06 * * 1-5"
+    - cron: "30 05 * * 1-5"
 jobs:
   build:
     runs-on: ubuntu-latest
