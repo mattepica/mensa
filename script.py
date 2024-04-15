@@ -4,6 +4,16 @@ import requests
 
 base_url = "https://erzelli.alpiristorazione.cloud"
 
+emojis = {
+    'glass_of_milk': '\U0001F95B',
+    'ear_of_rice': '\U0001F33E',
+    'white_small_square': '\U000025AB',
+    'broccoli': '\U0001F966',
+    'curry_and_rice': '\U0001F35B',
+    'spaghetti': '\U0001F35D',
+    'white_right_pointing_backhand_index': '\U0001F449'
+}
+
 #
 # menu = {
 #   'primi': [
@@ -62,11 +72,11 @@ def get_menu(day_of_week):
 
 def render_piatto(piatto):
   allergeni_emoji = {
-    'latte': '\U0001F95B',
-    'glutine': '\U0001F33E'
+    'latte': emojis['glass_of_milk'],
+    'glutine': emojis['ear_of_rice']
   }
   allergeni = "".join(map(lambda x: f" {allergeni_emoji[x]}", piatto['allergeni']))
-  return f"  \U000025AB <i>{piatto['nome']}{allergeni} [{piatto['kcal']} kcal]</i>"
+  return f"  {emojis['white_small_square']} <i>{piatto['nome']}{allergeni} [{piatto['kcal']} kcal]</i>"
 
 def render_piatti(piatti):
   return "\n".join(map(render_piatto, piatti))
@@ -78,15 +88,15 @@ def render_message():
   menu = get_menu(day)
 
   msg = f'''\
-\U0001F449 Menù <b>{menu['giorno']}</b> {data}
+{emojis['white_right_pointing_backhand_index']} Menù <b>{menu['giorno']}</b> {data}
 
-<b><u>Primi</u></b> \U0001F35D
+<b><u>Primi</u></b> {emojis['spaghetti']}
 {render_piatti(menu['primi'])}
 
-<b><u>Secondi</u></b> \U0001F35B
+<b><u>Secondi</u></b> {emojis['curry_and_rice']}
 {render_piatti(menu['secondi'])}
 
-<b><u>Contorni</u></b> \U0001F966
+<b><u>Contorni</u></b> {emojis['broccoli']}
 {render_piatti(menu['contorni'])}
 
 @menumensaerzelli'''
