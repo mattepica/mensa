@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import requests
 
-url = "https://erzelli.alpiristorazione.cloud/menu"
+base_url = "https://erzelli.alpiristorazione.cloud"
 
 #
 # menu = {
@@ -26,9 +26,9 @@ def get_info(piatto):
   html = response.text
   soup = BeautifulSoup(html, "html.parser")
   allergeni = []
-  if "https://erzelli.alpiristorazione.cloud/images/allergeni/glutine.png" in html:
+  if f"{base_url}/images/allergeni/glutine.png" in html:
     allergeni.append('glutine')
-  if "https://erzelli.alpiristorazione.cloud/images/allergeni/latte.png" in html:
+  if f"{base_url}/images/allergeni/latte.png" in html:
     allergeni.append('latte')
   info['allergeni'] = allergeni
   try:
@@ -46,7 +46,7 @@ def get_piatti(piatti_table):
     return [{'nome': piatto.getText().strip()} | get_info(piatto) for piatto in piatti]
 
 def get_menu(day_of_week):
-  response = requests.get(url)
+  response = requests.get(f"{base_url}/menu")
   response.raise_for_status()
   html = response.text
   soup = BeautifulSoup(html, "html.parser")
