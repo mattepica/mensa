@@ -16,69 +16,78 @@ emojis = {
 
 copyright = "@menumensaerzelli"
 
+
 def get_info(piatto):
-  info = {}
-  try:
-    response = requests.get(piatto.find("a")['href'])
-    response.raise_for_status()
-  except requests.HTTPError as e:
-      print(e)
-      return info
-  html = response.text
-  soup = BeautifulSoup(html, "html.parser")
-  allergeni = []
-  if f"{base_url}/images/allergeni/glutine.png" in html:
-    allergeni.append('glutine')
-  if f"{base_url}/images/allergeni/latte.png" in html:
-    allergeni.append('latte')
-  info['allergeni'] = allergeni
-  try:
-    kcal = soup.find("div", {"class": "div_gda"}).find("p", {"class": "valore_gda"}).decode_contents()
-    if not kcal:
-        raise Exception("Kcal not found")
-    kcal = kcal.split(">")[1]
-    info['kcal'] = kcal.split()[0]
-  except Exception as e:
-      print(e)
-  return info
+    info = {}
+    try:
+        response = requests.get(piatto.find("a")['href'])
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        print(e)
+        return info
+    html = response.text
+    soup = BeautifulSoup(html, "html.parser")
+    allergeni = []
+    if f"{base_url}/images/allergeni/glutine.png" in html:
+        allergeni.append('glutine')
+    if f"{base_url}/images/allergeni/latte.png" in html:
+        allergeni.append('latte')
+    info['allergeni'] = allergeni
+    try:
+        kcal = soup.find("div", {"class": "div_gda"}).find(
+            "p", {"class": "valore_gda"}).decode_contents()
+        if not kcal:
+            raise Exception("Kcal not found")
+        kcal = kcal.split(">")[1]
+        info['kcal'] = kcal.split()[0]
+    except Exception as e:
+        print(e)
+    return info
+
 
 def get_piatti(piatti_table):
     piatti = piatti_table.find_all("p")[:3]
-    return [{'nome': piatto.getText().strip()} | get_info(piatto) for piatto in piatti]
+    return [{'nome': piatto.getText().strip()} | get_info(piatto)
+            for piatto in piatti]
+
 
 def get_menu(day_of_week):
-  response = requests.get(f"{base_url}/menu")
-  response.raise_for_status()
-  html = response.text
-  soup = BeautifulSoup(html, "html.parser")
-  table = soup.find('table', { "class": "tabella_menu_settimanale" })
+    response = requests.get(f"{base_url}/menu")
+    response.raise_for_status()
+    html = response.text
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find('table', {"class": "tabella_menu_settimanale"})
 
-  menu = {
-    'giorno':   table.find_all('th',{ 'class': 'giorno_della_settimana'})[day_of_week-1].getText().lower(),
-    'primi':    get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 1})),
-    'secondi':  get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 2})),
-    'contorni': get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 4})),
-  }
-  return menu
+    menu = {
+        'giorno': table.find_all('th', {'class': 'giorno_della_settimana'})[day_of_week - 1].getText().lower(),
+        'primi': get_piatti(table.find('td', {"data-giorno": day_of_week, "data-tipo-piatto": 1})),
+        'secondi': get_piatti(table.find('td', {"data-giorno": day_of_week, "data-tipo-piatto": 2})),
+        'contorni': get_piatti(table.find('td', {"data-giorno": day_of_week, "data-tipo-piatto": 4})),
+    }
+    return menu
+
 
 def render_piatto(piatto):
-  allergeni_emoji = {
-    'latte': emojis['glass_of_milk'],
-    'glutine': emojis['ear_of_rice']
-  }
-  allergeni = "".join(map(lambda x: f" {allergeni_emoji[x]}", piatto['allergeni']))
-  return f"  {emojis['white_small_square']} <i>{piatto['nome']}{allergeni} [{piatto['kcal']} kcal]</i>"
+    allergeni_emoji = {
+        'latte': emojis['glass_of_milk'],
+        'glutine': emojis['ear_of_rice']
+    }
+    allergeni = "".join(
+        map(lambda x: f" {allergeni_emoji[x]}", piatto['allergeni']))
+    return f"  {emojis['white_small_square']} <i>{piatto['nome']}{allergeni} [{piatto['kcal']} kcal]</i>"
+
 
 def render_piatti(piatti):
-  return "\n".join(map(render_piatto, piatti))
+    return "\n".join(map(render_piatto, piatti))
+
 
 def render_message():
-  dt = datetime.now()
-  day = dt.weekday() + 1
-  data = dt.strftime('%d/%m/%Y')
-  menu = get_menu(day)
+    dt = datetime.now()
+    day = dt.weekday() + 1
+    data = dt.strftime('%d/%m/%Y')
+    menu = get_menu(day)
 
-  msg = f'''\
+    msg = f'''\
 {emojis['white_right_pointing_backhand_index']} Menù <b>{menu['giorno']}</b> {data}
 
 <b><u>Primi</u></b> {emojis['spaghetti']}
@@ -92,15 +101,22 @@ def render_message():
 
 {copyright}'''
 
-  return msg
+    return msg
+
 
 def publish_message_to_telegram(bot_name, chat_id, msg):
-  url_tg = f"https://api.telegram.org/bot{bot_name}/sendMessage"
-  try:
-      response = requests.post(url_tg, json={'chat_id': chat_id, 'parse_mode': "html", 'text':  msg})
-      response.raise_for_status()
-  except requests.HTTPError:
-      print(response.json())
+    url_tg = f"https://api.telegram.org/bot{bot_name}/sendMessage"
+    try:
+        response = requests.post(
+            url_tg,
+            json={
+                'chat_id': chat_id,
+                'parse_mode': "html",
+                'text': msg})
+        response.raise_for_status()
+    except requests.HTTPError:
+        print(response.json())
+
 
 if __name__ == "__main__":
     import sys
