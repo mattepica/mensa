@@ -25,6 +25,8 @@ emojis = {
 # }
 #
 
+copyright = "@menumensaerzelli"
+
 def get_info(piatto):
   info = {}
   try:
@@ -99,7 +101,7 @@ def render_message():
 <b><u>Contorni</u></b> {emojis['broccoli']}
 {render_piatti(menu['contorni'])}
 
-@menumensaerzelli'''
+{copyright}'''
 
   return msg
 
