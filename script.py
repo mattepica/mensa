@@ -14,16 +14,7 @@ emojis = {
     'white_right_pointing_backhand_index': '\U0001F449'
 }
 
-#
-# menu = {
-#   'primi': [
-#     { 'nome': 'nome1', 'allergeni': ['glutine'], 'kcal': 300 },
-#     { 'nome': 'nome2', 'allergeni': ['latte'],   'kcal': 200 },
-#   ],
-#   'secondi':  [],
-#   'contorni': [],
-# }
-#
+copyright = "@menumensaerzelli"
 
 def get_info(piatto):
   info = {}
@@ -99,7 +90,7 @@ def render_message():
 <b><u>Contorni</u></b> {emojis['broccoli']}
 {render_piatti(menu['contorni'])}
 
-@menumensaerzelli'''
+{copyright}'''
 
   return msg
 
