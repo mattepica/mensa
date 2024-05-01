@@ -110,8 +110,9 @@ def render_piatto(piatto):
 def render_piatti(piatti):
   return "\n".join(map(render_piatto, piatti))
 
-def render_message(username, password):
-  dt = datetime.now()
+def render_message(username, password, dt=None):
+  if not dt:
+    dt = datetime.now()
   day = dt.weekday()
   data = dt.strftime('%d/%m/%Y')
   iso_data = dt.strftime('%Y-%m-%dT00:00:00')
