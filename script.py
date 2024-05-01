@@ -100,7 +100,11 @@ def render_piatto(piatto):
     'latte': emojis['glass_of_milk'],
     'glutine': emojis['ear_of_rice']
   }
-  allergeni = "".join(map(lambda x: allergeni_emoji[x], piatto['allergeni']))
+
+  allergeni = ''
+  if piatto.get('allergeni',False):
+    allergeni = "".join(map(lambda x: allergeni_emoji[x], piatto['allergeni']))
+
   return f"  {emojis['white_small_square']} <i>{piatto['nome']} {allergeni} [{piatto['kcal']} kcal]</i>"
 
 def render_piatti(piatti):
@@ -111,7 +115,7 @@ def render_message(username, password):
   day = dt.weekday()
   data = dt.strftime('%d/%m/%Y')
   iso_data = dt.strftime('%Y-%m-%dT00:00:00')
-  
+
   menu = get_menu(iso_data, username, password)
 
   msg = f'''\
