@@ -14,6 +14,16 @@ emojis = {
     'white_right_pointing_backhand_index': '\U0001F449'
 }
 
+days_text = [
+   "Domenica",
+   "Lunedì",
+   "Martedì"
+   "Mercoledì",
+   "Giovedì",
+   "Venerdì",
+   "Sabato"
+]
+
 #
 # menu = {
 #   'primi': [
@@ -27,36 +37,6 @@ emojis = {
 
 copyright = "@menumensaerzelli"
 
-def get_info(piatto):
-  info = {}
-  try:
-    response = requests.get(piatto.find("a")['href'])
-    response.raise_for_status()
-  except requests.HTTPError as e:
-      print(e)
-      return info
-  html = response.text
-  soup = BeautifulSoup(html, "html.parser")
-  allergeni = []
-  if f"{base_url}/images/allergeni/glutine.png" in html:
-    allergeni.append('glutine')
-  if f"{base_url}/images/allergeni/latte.png" in html:
-    allergeni.append('latte')
-  info['allergeni'] = allergeni
-  try:
-    kcal = soup.find("div", {"class": "div_gda"}).find("p", {"class": "valore_gda"}).decode_contents()
-    if not kcal:
-        raise Exception("Kcal not found")
-    kcal = kcal.split(">")[1]
-    info['kcal'] = kcal.split()[0]
-  except Exception as e:
-      print(e)
-  return info
-
-def get_piatti(piatti_table):
-    piatti = piatti_table.find_all("p")[:3]
-    return [{'nome': piatto.getText().strip()} | get_info(piatto) for piatto in piatti]
-
 def get_menu(day_of_week):
   response = requests.get(f"{base_url}/menu")
   response.raise_for_status()
@@ -65,10 +45,9 @@ def get_menu(day_of_week):
   table = soup.find('table', { "class": "tabella_menu_settimanale" })
 
   menu = {
-    'giorno':   table.find_all('th',{ 'class': 'giorno_della_settimana'})[day_of_week-1].getText().lower(),
-    'primi':    get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 1})),
-    'secondi':  get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 2})),
-    'contorni': get_piatti(table.find('td', {"data-giorno": day_of_week , "data-tipo-piatto": 4})),
+    'primi':    {},
+    'secondi':  {},
+    'contorni': {},
   }
   return menu
 
@@ -85,12 +64,12 @@ def render_piatti(piatti):
 
 def render_message():
   dt = datetime.now()
-  day = dt.weekday() + 1
+  day = dt.weekday()
   data = dt.strftime('%d/%m/%Y')
   menu = get_menu(day)
 
   msg = f'''\
-{emojis['white_right_pointing_backhand_index']} Menù <b>{menu['giorno']}</b> {data}
+{emojis['white_right_pointing_backhand_index']} Menù <b>{days_text[day]}</b> {data}
 
 <b><u>Primi</u></b> {emojis['spaghetti']}
 {render_piatti(menu['primi'])}
