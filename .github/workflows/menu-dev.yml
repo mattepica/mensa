@@ -20,6 +20,6 @@ jobs:
         if: steps.cache-linter.outputs.cache-hit != 'true'
         run: |
           python3 -m venv venv
-          source venv/bin/pip3 install -r requirements.txt
+          venv/bin/pip3 install -r requirements.txt
       - name: Push on TG
-        run: source venv/bin/python3 script.py '${{ secrets.WEB_USERNAME }}' '${{ secrets.WEB_PASSWORD }}' '${{ secrets.BOT_TOKEN }}' '${{ vars.DEBUG_CHANNEL_ID }}'
+        run: venv/bin/python3 script.py '${{ secrets.WEB_USERNAME }}' '${{ secrets.WEB_PASSWORD }}' '${{ secrets.BOT_TOKEN }}' '${{ vars.DEBUG_CHANNEL_ID }}'
