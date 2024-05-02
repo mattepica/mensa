@@ -144,5 +144,18 @@ def publish_message_to_telegram(bot_name, chat_id, msg):
       print(response.json())
 
 if __name__ == "__main__":
+    import os
     import sys
-    publish_message_to_telegram(sys.argv[3], sys.argv[4], render_message(sys.argv[1], sys.argv[2]))
+    vars = [
+       'WEB_USER', 
+       'WEB_PASSWORD',
+       'BOT_TOKEN',
+       'CHANNEL_ID',
+    ]
+
+    if len(sys.argv) < 1+len(vars):
+       params = dict(os.environ.items())
+    else:
+       params = dict(map(lambda x,y : (x,y) , vars,sys.argv[1:]))
+
+    publish_message_to_telegram(params['BOT_TOKEN'], params['CHANNEL_ID'], render_message(params['WEB_USER'], params['WEB_PASSWORD']))
