@@ -42,29 +42,12 @@ copyright = "@menumensaerzelli"
 def raw_query(filter: str) -> str:
     return f'[?DescrGruppo==`{filter}`].{{nome: DescrPiatto, kcal: ValoriNutrizionali.KCal}}'
 
-def get_menu(iso_data, username, password):
+def get_menu(iso_data):
 
   menu = {}
-  login_data = {
-    '__EVENTTARGET': '',
-    '__EVENTARGUMENT':'',
-    'txtResetPassword': '',
-    'cmdLogin': 'ENTRA',
-    'inputEmail': username,
-    'inputPassword': password
-  }
 
   with requests.Session() as s:
-    response = s.get(f'{base_url}/Account/Login')
-    response.raise_for_status()
-    html = response.text
-    soup = BeautifulSoup(html, "html.parser")
-
-    login_data["__VIEWSTATE"] = soup.select_one("#__VIEWSTATE")["value"]
-    login_data["__VIEWSTATEGENERATOR"] = soup.select_one("#__VIEWSTATEGENERATOR")["value"]
-    login_data["__EVENTVALIDATION"] = soup.select_one("#__EVENTVALIDATION")["value"]
-
-    response = s.post(f'{base_url}/Account/Login', data=login_data)
+    response = s.get(f'{base_url}/ExportMenu.aspx')
     response.raise_for_status()
 
     menu_data = {
@@ -90,8 +73,6 @@ def get_menu(iso_data, username, password):
     for piatto,nome in portate.items():
       expression = jmespath.compile(raw_query(piatto))
       menu[nome] = expression.search(json_object)[:3]
-      
-    s.get(f"{base_url}/Account/DoLogout")
      
   return menu
 
@@ -110,14 +91,14 @@ def render_piatto(piatto):
 def render_piatti(piatti):
   return "\n".join(map(render_piatto, piatti))
 
-def render_message(username, password, dt=None):
+def render_message(dt=None):
   if not dt:
     dt = datetime.now()
   day = dt.weekday()
   data = dt.strftime('%d/%m/%Y')
   iso_data = dt.strftime('%Y-%m-%dT00:00:00')
 
-  menu = get_menu(iso_data, username, password)
+  menu = get_menu(iso_data)
 
   msg = f'''\
 {emojis['white_right_pointing_backhand_index']} Menù <b>{days_text[day]}</b> {data}
@@ -147,8 +128,6 @@ if __name__ == "__main__":
     import os
     import sys
     vars = [
-       'WEB_USER', 
-       'WEB_PASSWORD',
        'BOT_TOKEN',
        'CHANNEL_ID',
     ]
@@ -158,4 +137,4 @@ if __name__ == "__main__":
     else:
        params = dict(map(lambda x,y : (x,y) , vars,sys.argv[1:]))
 
-    publish_message_to_telegram(params['BOT_TOKEN'], params['CHANNEL_ID'], render_message(params['WEB_USER'], params['WEB_PASSWORD']))
+    publish_message_to_telegram(params['BOT_TOKEN'], params['CHANNEL_ID'], render_message())

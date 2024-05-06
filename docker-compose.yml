@@ -3,7 +3,5 @@ services:
   mensa:
     image: ghcr.io/mattepica/mensa:release
     environment:
-      WEB_USER: ${WEB_USER}
-      WEB_PASSWORD: ${WEB_PASSWORD}
       BOT_TOKEN: ${BOT_TOKEN}
       CHANNEL_ID: ${CHANNEL_ID}

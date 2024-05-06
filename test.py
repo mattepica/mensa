@@ -4,7 +4,7 @@ import datetime
 if __name__ == "__main__":
     import sys
     datetime_object = None
-    if len(sys.argv) == 4:
-        datetime_object = datetime.datetime.strptime(sys.argv[3], '%d/%m/%Y')
+    if len(sys.argv) == 2:
+        datetime_object = datetime.datetime.strptime(sys.argv[1], '%d/%m/%Y')
         
-    print(render_message(sys.argv[1], sys.argv[2],datetime_object))
+    print(render_message(datetime_object))
