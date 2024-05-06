@@ -86,7 +86,7 @@ def render_piatto(piatto):
   if piatto.get('allergeni',False):
     allergeni = "".join(map(lambda x: f" {allergeni_emoji[x]}", piatto['allergeni']))
 
-  return f"  {emojis['white_small_square']} <i>{piatto['nome']}{allergeni} [{piatto['kcal']} kcal]</i>"
+  return f"  {emojis['white_small_square']} <i>{piatto['nome']}{allergeni} [{piatto['kcal']:.0f} kcal]</i>"
 
 def render_piatti(piatti):
   return "\n".join(map(render_piatto, piatti))
