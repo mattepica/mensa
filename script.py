@@ -40,7 +40,7 @@ days_text = [
 copyright = "@menumensaerzelli"
 
 def raw_query(filter: str) -> str:
-    return f'[?DescrGruppo==`{filter}`].{{nome: DescrPiatto, kcal: ValoriNutrizionali.KCal}}'
+    return f'[?DescrGruppo==`{filter}`].{{nome: DescrPiatto, kcal: ValoriNutrizionali.KCal, allergeni: allergeni}}'
 
 def get_menu(iso_data):
 
@@ -84,7 +84,7 @@ def render_piatto(piatto):
 
   allergeni = ''
   if piatto.get('allergeni',False):
-    allergeni = "".join(map(lambda x: f" {allergeni_emoji[x]}", piatto['allergeni']))
+    allergeni = "".join(map(lambda x: f" {allergeni_emoji.get(x,'')}" if x in piatto["allergeni"] else '',allergeni_emoji.keys()))
 
   return f"  {emojis['white_small_square']} <i>{piatto['nome']}{allergeni} [{piatto['kcal']:.0f} kcal]</i>"
 
