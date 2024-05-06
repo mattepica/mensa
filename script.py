@@ -17,13 +17,13 @@ emojis = {
 }
 
 days_text = [
-   "Domenica",
    "Lunedì",
-   "Martedì"
+   "Martedì",
    "Mercoledì",
    "Giovedì",
    "Venerdì",
-   "Sabato"
+   "Sabato",
+   "Domenica"
 ]
 
 #
