@@ -96,7 +96,7 @@ def render_message(dt=None):
     dt = datetime.now()
   day = dt.weekday()
   data = dt.strftime('%d/%m/%Y')
-  iso_data = dt.strftime('%Y-%m-%dT00:00:00')
+  iso_data = dt.isoformat()
 
   menu = get_menu(iso_data)
 
