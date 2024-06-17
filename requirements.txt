@@ -14,5 +14,5 @@ jmespath==1.0.1
     # via -r requirements.in
 requests==2.31.0
     # via -r requirements.in
-urllib3==2.1.0
+urllib3==2.2.2
     # via requests
