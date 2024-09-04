@@ -1,9 +1,8 @@
 from datetime import datetime
 import jmespath
-import json
 import requests
 
-base_url = "https://alpisanmarco.itchef.it/ITChefWebAPP"
+base_url = "https://alpisanmarco.itchef.it/ITChefAppWS/api/utente"
 
 emojis = {
     'glass_of_milk': '\U0001F95B',
@@ -39,39 +38,27 @@ days_text = [
 copyright = "@menumensaerzelli"
 
 def raw_query(filter: str) -> str:
-    return f'[?DescrGruppo==`{filter}`].{{nome: DescrPiatto, kcal: ValoriNutrizionali.KCal, allergeni: allergeni}}'
+  return f'[?descrizione==`{filter}`].piatti[:3].{{nome: descrizione, kcal: valoriNutrizionali.KCal, allergeni: elencoAllergeni}}'
 
-def get_menu(iso_data):
+def get_menu():
 
   menu = {}
 
   with requests.Session() as s:
-    response = s.get(f'{base_url}/ExportMenu.aspx')
+    response = s.post(f'{base_url}/ExportMenu/C82DC5EE-FC90-42F0-B6DD-E95D7C33283A', json="{}")
     response.raise_for_status()
 
-    menu_data = {
-      'IdCliente':'6',
-      'IdDestinazione':'6',
-      'IdDieta':'2',
-      'IdTipologia':'0',
-      'IdServizio':'2',
-      'sData':f'"{iso_data}"'
-    }
+    portate = response.json()["menu"][0]["portate"] # Taking for granted the fact that there's only one menu
 
-    response = s.post(f"{base_url}/LocalServiceInterface.asmx/GetMenu",json=menu_data)
-    response.raise_for_status()
-
-    json_object = json.loads(response.json()["d"])    # Perdoname Spidi
-
-    portate = {
+    portate_dict = {
       "Primo":"primi",
       "Secondo":"secondi",
       "Contorno":"contorni"
     }
     
-    for piatto,nome in portate.items():
+    for piatto,nome in portate_dict.items():
       expression = jmespath.compile(raw_query(piatto))
-      menu[nome] = expression.search(json_object)[:3]
+      menu[nome] = expression.search(portate)[0]
      
   return menu
 
@@ -95,9 +82,8 @@ def render_message(dt=None):
     dt = datetime.now()
   day = dt.weekday()
   data = dt.strftime('%d/%m/%Y')
-  iso_data = dt.isoformat()
 
-  menu = get_menu(iso_data)
+  menu = get_menu()
 
   msg = f'''\
 {emojis['white_right_pointing_backhand_index']} Menù <b>{days_text[day]}</b> {data}
